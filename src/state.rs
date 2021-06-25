@@ -10,8 +10,6 @@ pub struct State {
     pub swap_chain: wgpu::SwapChain,
     pub size: winit::dpi::PhysicalSize<u32>,
     pub render_pipeline: wgpu::RenderPipeline,
-    pub challenge_pipeline: wgpu::RenderPipeline,
-    pub challenge_mode: bool,
 }
 
 impl State {
@@ -57,22 +55,7 @@ impl State {
             source: wgpu::ShaderSource::Wgsl(include_str!("../shaders/shader.wgsl").into()),
         });
 
-        let challenge_shader = device.create_shader_module(&wgpu::ShaderModuleDescriptor {
-            label: Some("Shader"),
-            flags: wgpu::ShaderFlags::all(),
-            source: wgpu::ShaderSource::Wgsl(
-                include_str!("../shaders/challenge_shader.wgsl").into(),
-            ),
-        });
-
         let render_pipeline_layout =
-            device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
-                label: Some("Render Pipeline Layout"),
-                bind_group_layouts: &[],
-                push_constant_ranges: &[],
-            });
-
-        let challenge_pipeline_layout =
             device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
                 label: Some("Render Pipeline Layout"),
                 bind_group_layouts: &[],
@@ -116,43 +99,6 @@ impl State {
             },
         });
 
-        let challenge_pipeline = device.create_render_pipeline(&wgpu::RenderPipelineDescriptor {
-            label: Some("Render Pipeline"),
-            layout: Some(&challenge_pipeline_layout),
-            vertex: wgpu::VertexState {
-                module: &challenge_shader,
-                entry_point: "main",
-                buffers: &[],
-            },
-            fragment: Some(wgpu::FragmentState {
-                module: &challenge_shader,
-                entry_point: "main",
-                targets: &[wgpu::ColorTargetState {
-                    format: sc_desc.format,
-                    blend: Some(wgpu::BlendState {
-                        color: wgpu::BlendComponent::REPLACE,
-                        alpha: wgpu::BlendComponent::REPLACE,
-                    }),
-                    write_mask: wgpu::ColorWrite::ALL,
-                }],
-            }),
-            primitive: wgpu::PrimitiveState {
-                topology: wgpu::PrimitiveTopology::TriangleList,
-                strip_index_format: None,
-                front_face: wgpu::FrontFace::Ccw,
-                cull_mode: Some(wgpu::Face::Back),
-                polygon_mode: wgpu::PolygonMode::Fill,
-                clamp_depth: false,
-                conservative: false,
-            },
-            depth_stencil: None,
-            multisample: wgpu::MultisampleState {
-                count: 1,
-                mask: !0,
-                alpha_to_coverage_enabled: false,
-            },
-        });
-
         Self {
             surface,
             device,
@@ -161,8 +107,6 @@ impl State {
             sc_desc,
             swap_chain,
             render_pipeline,
-            challenge_pipeline,
-            challenge_mode: false,
         }
     }
 
@@ -175,20 +119,7 @@ impl State {
 
     #[allow(unused_variables)]
     pub fn input(&mut self, event: &WindowEvent) -> bool {
-        match event {
-            WindowEvent::KeyboardInput { input, .. } => match input {
-                KeyboardInput {
-                    state: ElementState::Pressed,
-                    virtual_keycode: Some(VirtualKeyCode::Space),
-                    ..
-                } => {
-                    self.challenge_mode = !self.challenge_mode;
-                    return true;
-                }
-                _ => return false,
-            },
-            _ => return false,
-        }
+        false
     }
 
     pub fn update(&mut self) {}
@@ -221,11 +152,7 @@ impl State {
                 depth_stencil_attachment: None,
             });
 
-            if self.challenge_mode {
-                render_pass.set_pipeline(&self.challenge_pipeline);
-            } else {
-                render_pass.set_pipeline(&self.render_pipeline);
-            }
+            render_pass.set_pipeline(&self.render_pipeline);
             render_pass.draw(0..3, 0..1);
         }
 
