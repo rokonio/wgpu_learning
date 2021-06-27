@@ -71,11 +71,11 @@ impl CameraController {
                         self.is_down_pressed = is_pressed;
                         true
                     }
-                    VirtualKeyCode::W | VirtualKeyCode::Up => {
+                    VirtualKeyCode::Z | VirtualKeyCode::Up => {
                         self.is_forward_pressed = is_pressed;
                         true
                     }
-                    VirtualKeyCode::A | VirtualKeyCode::Left => {
+                    VirtualKeyCode::Q | VirtualKeyCode::Left => {
                         self.is_left_pressed = is_pressed;
                         true
                     }
