@@ -40,6 +40,7 @@ pub struct State {
     pub diffuse_bind_group: wgpu::BindGroup,
     pub diffuse_texture: texture::Texture,
     pub camera: camera::Camera,
+    pub camera_controller: camera::CameraController,
     pub uniforms: Uniforms,
     pub uniform_buffer: wgpu::Buffer,
     pub uniform_bind_group: wgpu::BindGroup,
@@ -90,6 +91,7 @@ impl State {
             znear: 0.1,
             zfar: 100.0,
         };
+        let camera_controller = camera::CameraController::new(0.2);
 
         let mut uniforms = Uniforms::new();
         uniforms.update_view_proj(&camera);
@@ -242,6 +244,7 @@ impl State {
             diffuse_bind_group,
             diffuse_texture,
             camera,
+            camera_controller,
             uniforms,
             uniform_buffer,
             uniform_bind_group,
@@ -257,10 +260,18 @@ impl State {
 
     #[allow(unused_variables)]
     pub fn input(&mut self, event: &WindowEvent) -> bool {
-        false
+        self.camera_controller.process_events(event)
     }
 
-    pub fn update(&mut self) {}
+    pub fn update(&mut self) {
+        self.camera_controller.update_camera(&mut self.camera);
+        self.uniforms.update_view_proj(&self.camera);
+        self.queue.write_buffer(
+            &self.uniform_buffer,
+            0,
+            bytemuck::cast_slice(&[self.uniforms]),
+        );
+    }
 
     pub fn render(&mut self) -> Result<(), wgpu::SwapChainError> {
         let frame = self.swap_chain.get_current_frame()?.output;
