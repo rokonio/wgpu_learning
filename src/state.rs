@@ -18,6 +18,9 @@ pub struct State {
     pub num_indices: u32,
     pub diffuse_bind_group: wgpu::BindGroup,
     pub diffuse_texture: texture::Texture,
+    pub cartoon_texture: texture::Texture,
+    pub cartoon_bind_group: wgpu::BindGroup,
+    pub space_pressed: bool,
 }
 
 impl State {
@@ -59,6 +62,10 @@ impl State {
         let diffuse_bytes = include_bytes!("../assets/happy-tree.png");
         let diffuse_texture =
             texture::Texture::from_bytes(&device, &queue, diffuse_bytes, "happy-tree.png").unwrap();
+        let cartoon_bytes = include_bytes!("../assets/happy-tree-cartoon.png");
+        let cartoon_texture =
+            texture::Texture::from_bytes(&device, &queue, cartoon_bytes, "happy-tree-cartoon.png")
+                .unwrap();
         let texture_bind_group_layout =
             device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
                 entries: &[
@@ -97,6 +104,20 @@ impl State {
                 },
             ],
             label: Some("diffuse_bind_group"),
+        });
+        let cartoon_bind_group = device.create_bind_group(&wgpu::BindGroupDescriptor {
+            layout: &texture_bind_group_layout,
+            entries: &[
+                wgpu::BindGroupEntry {
+                    binding: 0,
+                    resource: wgpu::BindingResource::TextureView(&cartoon_texture.view),
+                },
+                wgpu::BindGroupEntry {
+                    binding: 1,
+                    resource: wgpu::BindingResource::Sampler(&cartoon_texture.sampler),
+                },
+            ],
+            label: Some("cartoon_bind_group"),
         });
 
         let shader = device.create_shader_module(&wgpu::ShaderModuleDescriptor {
@@ -173,6 +194,9 @@ impl State {
             num_indices,
             diffuse_bind_group,
             diffuse_texture,
+            cartoon_texture,
+            cartoon_bind_group,
+            space_pressed: false,
         }
     }
 
@@ -185,7 +209,21 @@ impl State {
 
     #[allow(unused_variables)]
     pub fn input(&mut self, event: &WindowEvent) -> bool {
-        false
+        match event {
+            WindowEvent::KeyboardInput {
+                input:
+                    KeyboardInput {
+                        state: ElementState::Pressed,
+                        virtual_keycode: Some(VirtualKeyCode::Space),
+                        ..
+                    },
+                ..
+            } => {
+                self.space_pressed = !self.space_pressed;
+                true
+            }
+            _ => false,
+        }
     }
 
     pub fn update(&mut self) {}
@@ -219,7 +257,15 @@ impl State {
             });
 
             render_pass.set_pipeline(&self.render_pipeline);
-            render_pass.set_bind_group(0, &self.diffuse_bind_group, &[]);
+            render_pass.set_bind_group(
+                0,
+                if self.space_pressed {
+                    &self.cartoon_bind_group
+                } else {
+                    &self.diffuse_bind_group
+                },
+                &[],
+            );
             render_pass.set_vertex_buffer(0, self.vertex_buffer.slice(..));
             render_pass.set_index_buffer(self.index_buffer.slice(..), wgpu::IndexFormat::Uint16);
 
