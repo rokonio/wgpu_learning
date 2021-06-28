@@ -15,9 +15,8 @@ pub struct Uniforms {
 
 impl Uniforms {
     pub fn new() -> Self {
-        use cgmath::SquareMatrix;
         Self {
-            view_proj: cgmath::Matrix4::identity().into(),
+            view_proj: glm::Mat4::identity().into(),
         }
     }
 
@@ -83,9 +82,9 @@ impl State {
         let swap_chain = device.create_swap_chain(&surface, &sc_desc);
 
         let camera = camera::Camera {
-            eye: (0.0, 1.0, 2.0).into(),
-            target: (0.0, 0.0, 0.0).into(),
-            up: cgmath::Vector3::unit_y(),
+            eye: glm::vec3(0.0, 1.0, 2.0),
+            target: glm::vec3(0.0, 0.0, 0.0),
+            up: glm::vec3(0.0, 1.0, 0.0),
             aspect: sc_desc.width as f32 / sc_desc.height as f32,
             fovy: 45.0,
             znear: 0.1,
