@@ -1,7 +1,7 @@
 use winit::event::*;
 
 #[rustfmt::skip]
-pub const OPENGL_TO_WGPU_MATRIX: cgmath::Matrix4<f32> = cgmath::Matrix4::new(
+pub const OPENGL_TO_WGPU_MATRIX: glm::Mat4 = glm::Mat4::new(
     1.0, 0.0, 0.0, 0.0,
     0.0, 1.0, 0.0, 0.0,
     0.0, 0.0, 0.5, 0.0,
@@ -9,9 +9,9 @@ pub const OPENGL_TO_WGPU_MATRIX: cgmath::Matrix4<f32> = cgmath::Matrix4::new(
 );
 
 pub struct Camera {
-    pub eye: cgmath::Point3<f32>,
-    pub target: cgmath::Point3<f32>,
-    pub up: cgmath::Vector3<f32>,
+    pub eye: glm::Vec3,
+    pub target: glm::Vec3,
+    pub up: glm::Vec3,
     pub aspect: f32,
     pub fovy: f32,
     pub znear: f32,
@@ -19,9 +19,9 @@ pub struct Camera {
 }
 
 impl Camera {
-    pub fn build_view_projection_matrix(&self) -> cgmath::Matrix4<f32> {
-        let view = cgmath::Matrix4::look_at_rh(self.eye, self.target, self.up);
-        let proj = cgmath::perspective(cgmath::Deg(self.fovy), self.aspect, self.znear, self.zfar);
+    pub fn build_view_projection_matrix(&self) -> glm::Mat4 {
+        let view = glm::look_at_rh(&self.eye, &self.target, &self.up);
+        let proj = glm::perspective(self.aspect, self.fovy, self.znear, self.zfar);
 
         return OPENGL_TO_WGPU_MATRIX * proj * view;
     }
@@ -95,7 +95,6 @@ impl CameraController {
     }
 
     pub fn update_camera(&self, camera: &mut Camera) {
-        use cgmath::InnerSpace;
         let forward = camera.target - camera.eye;
         let forward_norm = forward.normalize();
         let forward_mag = forward.magnitude();
@@ -107,16 +106,18 @@ impl CameraController {
             camera.eye -= forward_norm * self.speed;
         }
 
-        let right = forward_norm.cross(camera.up);
+        let right = forward_norm.cross(&camera.up);
 
         let forward = camera.target - camera.eye;
         let forward_mag = forward.magnitude();
 
         if self.is_right_pressed {
-            camera.eye = camera.target - (forward + right * self.speed).normalize() * forward_mag;
+            camera.eye =
+                camera.target - glm::normalize(&(forward + right * self.speed)) * forward_mag;
         }
         if self.is_left_pressed {
-            camera.eye = camera.target - (forward - right * self.speed).normalize() * forward_mag;
+            camera.eye =
+                camera.target - glm::normalize(&(forward - right * self.speed)) * forward_mag;
         }
     }
 }

@@ -1,3 +1,5 @@
+extern crate nalgebra_glm as glm;
+
 use winit::{
     event::*,
     event_loop::{ControlFlow, EventLoop},
