@@ -19,11 +19,11 @@ pub struct Camera {
 }
 
 impl Camera {
-    pub fn build_view_projection_matrix(&self, model: glm::Mat4) -> glm::Mat4 {
+    pub fn build_view_projection_matrix(&self) -> glm::Mat4 {
         let view = glm::look_at_rh(&self.eye, &self.target, &self.up);
         let proj = glm::perspective(self.aspect, self.fovy, self.znear, self.zfar);
 
-        return OPENGL_TO_WGPU_MATRIX * proj * view * model;
+        return OPENGL_TO_WGPU_MATRIX * proj * view;
     }
 }
 

@@ -7,10 +7,6 @@ mod camera;
 #[path = "texture.rs"]
 mod texture;
 
-fn rad(degree: f32) -> f32 {
-    degree * (std::f32::consts::PI / 180.)
-}
-
 #[repr(C)]
 #[derive(Debug, Copy, Clone, bytemuck::Pod, bytemuck::Zeroable)]
 pub struct Uniforms {
@@ -25,9 +21,7 @@ impl Uniforms {
     }
 
     pub fn update_view_proj(&mut self, camera: &camera::Camera) {
-        self.view_proj = camera
-            .build_view_projection_matrix(glm::rotate_x(&glm::identity(), rad(20.)))
-            .into();
+        self.view_proj = camera.build_view_projection_matrix().into();
     }
 }
 
