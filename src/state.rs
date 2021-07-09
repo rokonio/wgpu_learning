@@ -4,26 +4,18 @@ use wgpu::util::DeviceExt;
 use winit::{event::*, window::Window};
 #[path = "camera.rs"]
 mod camera;
+#[path = "instance.rs"]
+mod instance;
 #[path = "texture.rs"]
 mod texture;
 
-#[repr(C)]
-#[derive(Debug, Copy, Clone, bytemuck::Pod, bytemuck::Zeroable)]
-pub struct Uniforms {
-    pub view_proj: [[f32; 4]; 4],
-}
-
-impl Uniforms {
-    pub fn new() -> Self {
-        Self {
-            view_proj: glm::Mat4::identity().into(),
-        }
-    }
-
-    pub fn update_view_proj(&mut self, camera: &camera::Camera) {
-        self.view_proj = camera.build_view_projection_matrix().into();
-    }
-}
+const NUM_INSTANCES_PER_ROW: u32 = 10;
+const NUM_INSTANCES: u32 = NUM_INSTANCES_PER_ROW * NUM_INSTANCES_PER_ROW;
+const INSTANCE_DISPLACEMENT: glm::Vec3 = glm::Vec3::new(
+    NUM_INSTANCES_PER_ROW as f32 * 0.5,
+    0.0,
+    NUM_INSTANCES_PER_ROW as f32 * 0.5,
+);
 
 pub struct State {
     pub surface: wgpu::Surface,
@@ -40,9 +32,11 @@ pub struct State {
     pub diffuse_texture: texture::Texture,
     pub camera: camera::Camera,
     pub camera_controller: camera::CameraController,
-    pub uniforms: Uniforms,
+    pub uniforms: camera::Uniforms,
     pub uniform_buffer: wgpu::Buffer,
     pub uniform_bind_group: wgpu::BindGroup,
+    pub instances: Vec<instance::Instance>,
+    pub instance_buffer: wgpu::Buffer,
 }
 
 impl State {
@@ -92,7 +86,53 @@ impl State {
         };
         let camera_controller = camera::CameraController::new(0.2);
 
-        let mut uniforms = Uniforms::new();
+        let instances = (0..NUM_INSTANCES_PER_ROW)
+            .flat_map(|z| {
+                (0..NUM_INSTANCES_PER_ROW).map(move |x| {
+                    let position = glm::vec3(x as f32, 0.0, z as f32) - INSTANCE_DISPLACEMENT;
+
+                    println!("Position: {:?}", position);
+                    let rotation = if glm::is_null(&position, f32::EPSILON) {
+                        // this is needed so an object at (0, 0, 0) won't get scaled to zero
+                        // as Quaternions can effect scale if they're not created correctly
+                        println!("Null");
+                        glm::Quat::from_parts(0.0, glm::Vec3::z())
+                    } else {
+                        use cgmath::{InnerSpace, Rotation3};
+                        let c_position = cgmath::Vector3 {
+                            x: position.x,
+                            y: position.y,
+                            z: position.z,
+                        };
+                        let a = glm::quat_normalize(&glm::Quat::from_parts(
+                            45.0,
+                            glm::normalize(&-position),
+                        ));
+                        let b = cgmath::Quaternion::from_axis_angle(
+                            c_position.clone().normalize(),
+                            cgmath::Deg(45.0),
+                        );
+
+                        println!("a = {:?}\nb = {:?}\n", a, b);
+                        a
+                    };
+
+                    instance::Instance { position, rotation }
+                })
+            })
+            .collect::<Vec<_>>();
+
+        let instance_data = instances
+            .iter()
+            .map(instance::Instance::to_raw)
+            .collect::<Vec<_>>();
+        let instance_buffer = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
+            label: Some("Instance Buffer"),
+            contents: bytemuck::cast_slice(&instance_data),
+            usage: wgpu::BufferUsage::VERTEX,
+        });
+
+        let mut uniforms = camera::Uniforms::new();
         uniforms.update_view_proj(&camera);
 
         let uniform_buffer = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
@@ -185,7 +225,7 @@ impl State {
             vertex: wgpu::VertexState {
                 module: &shader,
                 entry_point: "main",
-                buffers: &[Vertex::desc()],
+                buffers: &[Vertex::desc(), instance::InstanceRaw::desc()],
             },
             fragment: Some(wgpu::FragmentState {
                 module: &shader,
@@ -247,6 +287,8 @@ impl State {
             uniforms,
             uniform_buffer,
             uniform_bind_group,
+            instances,
+            instance_buffer,
         }
     }
 
@@ -304,9 +346,12 @@ impl State {
             render_pass.set_bind_group(0, &self.diffuse_bind_group, &[]);
             render_pass.set_bind_group(1, &self.uniform_bind_group, &[]);
             render_pass.set_vertex_buffer(0, self.vertex_buffer.slice(..));
+            // NEW!
+            render_pass.set_vertex_buffer(1, self.instance_buffer.slice(..));
             render_pass.set_index_buffer(self.index_buffer.slice(..), wgpu::IndexFormat::Uint16);
 
-            render_pass.draw_indexed(0..self.num_indices, 0, 0..1);
+            // UPDATED!
+            render_pass.draw_indexed(0..self.num_indices, 0, 0..self.instances.len() as _);
         }
 
         self.queue.submit(iter::once(encoder.finish()));
