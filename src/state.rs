@@ -17,6 +17,18 @@ const INSTANCE_DISPLACEMENT: glm::Vec3 = glm::Vec3::new(
     NUM_INSTANCES_PER_ROW as f32 * 0.5,
 );
 
+const TO_RADIAN: f32 = std::f32::consts::PI / 180.;
+
+fn quat_from_axis_angle(axis: &glm::Vec3, angle: f32) -> glm::Quat {
+    let s = (angle / 2.).sin();
+    glm::Quat::new(
+        (angle / 2.).cos(), // w
+        axis.x * s,         // x
+        axis.y * s,         // z
+        axis.z * s,         // z
+    )
+}
+
 pub struct State {
     pub surface: wgpu::Surface,
     pub device: wgpu::Device,
@@ -91,30 +103,12 @@ impl State {
                 (0..NUM_INSTANCES_PER_ROW).map(move |x| {
                     let position = glm::vec3(x as f32, 0.0, z as f32) - INSTANCE_DISPLACEMENT;
 
-                    println!("Position: {:?}", position);
                     let rotation = if glm::is_null(&position, f32::EPSILON) {
                         // this is needed so an object at (0, 0, 0) won't get scaled to zero
                         // as Quaternions can effect scale if they're not created correctly
-                        println!("Null");
-                        glm::Quat::from_parts(0.0, glm::Vec3::z())
+                        quat_from_axis_angle(&glm::Vec3::z(), 0.0)
                     } else {
-                        use cgmath::{InnerSpace, Rotation3};
-                        let c_position = cgmath::Vector3 {
-                            x: position.x,
-                            y: position.y,
-                            z: position.z,
-                        };
-                        let a = glm::quat_normalize(&glm::Quat::from_parts(
-                            45.0,
-                            glm::normalize(&-position),
-                        ));
-                        let b = cgmath::Quaternion::from_axis_angle(
-                            c_position.clone().normalize(),
-                            cgmath::Deg(45.0),
-                        );
-
-                        println!("a = {:?}\nb = {:?}\n", a, b);
-                        a
+                        quat_from_axis_angle(&position.normalize(), 45. * TO_RADIAN)
                     };
 
                     instance::Instance { position, rotation }
