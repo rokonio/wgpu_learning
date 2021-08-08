@@ -23,7 +23,7 @@ impl Camera {
         let view = glm::look_at_rh(&self.eye, &self.target, &self.up);
         let proj = glm::perspective(self.aspect, self.fovy, self.znear, self.zfar);
 
-        return OPENGL_TO_WGPU_MATRIX * proj * view;
+        OPENGL_TO_WGPU_MATRIX * proj * view
     }
 }
 
