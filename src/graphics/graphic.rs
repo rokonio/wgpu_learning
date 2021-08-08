@@ -15,7 +15,7 @@ impl GraphicBundle {
         self.window_bundle.resize(new_size);
     }
 
-    pub fn render(&mut self, bg_color: wgpu::Color) -> Result<(), wgpu::SwapChainError> {
+    pub fn render(&mut self) -> Result<(), wgpu::SwapChainError> {
         let win = &mut self.window_bundle;
         let frame = win.swap_chain.get_current_frame()?.output;
         // A lists of command to execute (like Renderpass)
@@ -32,7 +32,12 @@ impl GraphicBundle {
                 view: &frame.view,
                 resolve_target: None,
                 ops: wgpu::Operations {
-                    load: wgpu::LoadOp::Clear(bg_color),
+                    load: wgpu::LoadOp::Clear(wgpu::Color {
+                        r: 0.1,
+                        g: 0.2,
+                        b: 0.3,
+                        a: 1.0,
+                    }),
                     store: true,
                 },
             }],
