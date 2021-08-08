@@ -8,7 +8,10 @@ use winit::{
 fn main() {
     env_logger::init();
     let event_loop = EventLoop::new();
-    let window = WindowBuilder::new().build(&event_loop).unwrap();
+    let window = WindowBuilder::new()
+        .with_title("learn_wgpu window")
+        .build(&event_loop)
+        .unwrap();
 
     let mut app = app::App::new(&window);
 

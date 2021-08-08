@@ -7,6 +7,7 @@ use winit::window::Window;
 pub struct App {
     pub graphic: graphics::GraphicBundle,
     pub last_update: Instant,
+    pub bg_color: wgpu::Color,
 }
 
 impl App {
@@ -15,6 +16,7 @@ impl App {
         Self {
             graphic,
             last_update: Instant::now(),
+            bg_color: Default::default(),
         }
     }
 
@@ -22,20 +24,30 @@ impl App {
         self.graphic.resize(new_size)
     }
 
-    pub fn input(&mut self, _event: &WindowEvent) -> bool {
-        false
+    pub fn input(&mut self, event: &WindowEvent) -> bool {
+        match event {
+            WindowEvent::CursorMoved { position, .. } => {
+                self.bg_color = wgpu::Color {
+                    r: position.x / self.size().width as f64,
+                    g: position.y / self.size().height as f64,
+                    b: 0.0,
+                    a: 1.0,
+                };
+                true
+            }
+            _ => false,
+        }
     }
 
     pub fn update(&mut self) {
         let _since_last_update = self.last_update.elapsed();
         // Do stuff...
 
-        println!("{:?}", _since_last_update.as_millis());
         self.last_update = Instant::now();
     }
 
     pub fn render(&mut self) -> Result<(), wgpu::SwapChainError> {
-        self.graphic.render()
+        self.graphic.render(self.bg_color)
     }
     #[inline]
     pub fn size(&self) -> winit::dpi::PhysicalSize<u32> {
