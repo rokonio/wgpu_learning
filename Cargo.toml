@@ -1,5 +1,5 @@
 [package]
-name = "wgpu_voxel"
+name = "learn_wgpu"
 version = "0.1.0"
 authors = ["Rokonio <naelkanada@gmail.com>"]
 edition = "2018"
