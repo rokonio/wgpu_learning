@@ -1,14 +1,19 @@
-use super::WindowBundle;
+use super::*;
 use winit::window::Window;
 
 pub struct GraphicBundle {
     pub window_bundle: WindowBundle,
+    pub render_pipeline: RenderPipelineBundle,
 }
 
 impl GraphicBundle {
     pub async fn new(window: &Window) -> Self {
         let window_bundle = WindowBundle::new(&window).await;
-        Self { window_bundle }
+        let render_pipeline = RenderPipelineBundle::new(&window_bundle);
+        Self {
+            window_bundle,
+            render_pipeline,
+        }
     }
 
     pub fn resize(&mut self, new_size: winit::dpi::PhysicalSize<u32>) {
