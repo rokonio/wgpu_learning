@@ -7,7 +7,6 @@ use winit::window::Window;
 pub struct App {
     pub graphic: graphics::GraphicBundle,
     pub last_update: Instant,
-    pub bg_color: wgpu::Color,
 }
 
 impl App {
@@ -16,7 +15,6 @@ impl App {
         Self {
             graphic,
             last_update: Instant::now(),
-            bg_color: Default::default(),
         }
     }
 

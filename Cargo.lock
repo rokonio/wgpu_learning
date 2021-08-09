@@ -1025,22 +1025,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "e2abad23fbc42b3700f2f279844dc832adb2b2eb069b2df918f455c4e18cc646"
 
 [[package]]
-name = "learn_wgpu"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "bytemuck",
- "env_logger",
- "futures",
- "image",
- "log",
- "nalgebra-glm",
- "stderr",
- "wgpu",
- "winit",
-]
-
-[[package]]
 name = "libc"
 version = "0.2.98"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2166,6 +2150,22 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "4f5c9678cd533558e28b416d66947b099742df1939307478db54f867137f1b60"
 dependencies = [
  "bitflags",
+]
+
+[[package]]
+name = "wgpu_learning"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "bytemuck",
+ "env_logger",
+ "futures",
+ "image",
+ "log",
+ "nalgebra-glm",
+ "stderr",
+ "wgpu",
+ "winit",
 ]
 
 [[package]]

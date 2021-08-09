@@ -1,4 +1,4 @@
-# learn_wgpu
+# wgpu_learning
 (Note: To see the old version go to the old_main branch)
 
 This is a new version of my repository I used to learn wgpu-rs.
