@@ -10,11 +10,13 @@ pub struct Vertex {
 
 pub struct VertexBundle {
     pub vertex_buffer: wgpu::Buffer,
+    pub index_buffer: wgpu::Buffer,
     pub num_vertices: u32,
+    pub num_indices: u32,
 }
 
 impl VertexBundle {
-    pub fn new(window_bundle: &WindowBundle, vertices: &[Vertex]) -> Self {
+    pub fn new(window_bundle: &WindowBundle, vertices: &[Vertex], indices: &[u16]) -> Self {
         let vertex_buffer =
             window_bundle
                 .device
@@ -23,9 +25,19 @@ impl VertexBundle {
                     contents: bytemuck::cast_slice(vertices),
                     usage: wgpu::BufferUsage::VERTEX,
                 });
+        let index_buffer =
+            window_bundle
+                .device
+                .create_buffer_init(&wgpu::util::BufferInitDescriptor {
+                    label: Some("Vertex Buffer"),
+                    contents: bytemuck::cast_slice(indices),
+                    usage: wgpu::BufferUsage::INDEX,
+                });
         Self {
             vertex_buffer,
+            index_buffer,
             num_vertices: vertices.len() as u32,
+            num_indices: indices.len() as u32,
         }
     }
 }

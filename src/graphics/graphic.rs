@@ -10,11 +10,11 @@ pub struct GraphicBundle {
 }
 
 impl GraphicBundle {
-    pub async fn new(window: &Window, vertices: &[Vertex]) -> Self {
+    pub async fn new(window: &Window, vertices: &[Vertex], indices: &[u16]) -> Self {
         let window_bundle = WindowBundle::new(&window).await;
         let pipeline_bundle =
             RenderPipelineBundle::new(&window_bundle, include_str!("../shaders/shader.wgsl"));
-        let vertex_bundle = VertexBundle::new(&window_bundle, vertices);
+        let vertex_bundle = VertexBundle::new(&window_bundle, vertices, indices);
         Self {
             window_bundle,
             pipeline_bundle,
@@ -54,9 +54,11 @@ impl GraphicBundle {
             }],
             depth_stencil_attachment: None,
         });
+        let vert = &self.vertex_bundle;
         render_pass.set_pipeline(&self.pipeline_bundle.render_pipeline);
-        render_pass.set_vertex_buffer(0, self.vertex_bundle.vertex_buffer.slice(..));
-        render_pass.draw(0..self.vertex_bundle.num_vertices, 0..1);
+        render_pass.set_vertex_buffer(0, vert.vertex_buffer.slice(..));
+        render_pass.set_index_buffer(vert.index_buffer.slice(..), wgpu::IndexFormat::Uint16);
+        render_pass.draw_indexed(0..vert.num_indices, 0, 0..1);
 
         drop(render_pass);
         win.queue.submit(std::iter::once(encoder.finish()));

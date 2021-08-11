@@ -9,9 +9,17 @@ use winit::window::Window;
 
 #[rustfmt::skip]
 const VERTICES: &[Vertex] = &[
-    Vertex { position: [0.0, 0.5, 0.0], color: [1.0, 0.0, 0.0] },
+    Vertex { position: [-0.5, 0.5, 0.0 ], color: [1.0, 0.0, 0.0] },
     Vertex { position: [-0.5, -0.5, 0.0], color: [0.0, 1.0, 0.0] },
-    Vertex { position: [0.5, -0.5, 0.0], color: [0.0, 0.0, 1.0] },
+    Vertex { position: [0.5, -0.5, 0.0 ], color: [0.0, 0.0, 1.0] },
+    Vertex { position: [0.5, 0.5, 0.0  ], color: [0.0, 0.0, 0.0] },
+];
+
+#[rustfmt::skip]
+const INDICES: &[u16] = &[
+    0, 1, 2,
+    0, 2, 3,
+    0 // pading
 ];
 
 pub struct App {
@@ -21,7 +29,7 @@ pub struct App {
 
 impl App {
     pub fn new(window: &Window) -> Self {
-        let graphic = block_on(graphics::GraphicBundle::new(&window, VERTICES));
+        let graphic = block_on(graphics::GraphicBundle::new(&window, VERTICES, INDICES));
         Self {
             graphic,
             last_update: Instant::now(),
