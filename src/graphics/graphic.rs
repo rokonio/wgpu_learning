@@ -3,25 +3,17 @@ use winit::window::Window;
 
 pub struct GraphicBundle {
     pub window_bundle: WindowBundle,
-    pub render_pipeline_bundle: RenderPipelineBundle,
-    pub pipeline_colored: RenderPipelineBundle,
-    pub colored: bool,
+    pub pipeline_bundle: RenderPipelineBundle,
 }
 
 impl GraphicBundle {
     pub async fn new(window: &Window) -> Self {
         let window_bundle = WindowBundle::new(&window).await;
-        let render_pipeline_bundle =
+        let pipeline_bundle =
             RenderPipelineBundle::new(&window_bundle, include_str!("../shaders/shader.wgsl"));
-        let pipeline_colored = RenderPipelineBundle::new(
-            &window_bundle,
-            include_str!("../shaders/colored_triangle.wgsl"),
-        );
         Self {
             window_bundle,
-            render_pipeline_bundle,
-            pipeline_colored,
-            colored: false,
+            pipeline_bundle,
         }
     }
 
@@ -57,12 +49,7 @@ impl GraphicBundle {
             }],
             depth_stencil_attachment: None,
         });
-        let pipeline = if self.colored {
-            &self.pipeline_colored.render_pipeline
-        } else {
-            &self.render_pipeline_bundle.render_pipeline
-        };
-        render_pass.set_pipeline(pipeline);
+        render_pass.set_pipeline(&self.pipeline_bundle.render_pipeline);
         render_pass.draw(0..3, 0..1);
 
         drop(render_pass);

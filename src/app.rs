@@ -22,20 +22,7 @@ impl App {
         self.graphic.resize(new_size)
     }
 
-    pub fn input(&mut self, event: &WindowEvent) -> bool {
-        if let WindowEvent::KeyboardInput {
-            input:
-                KeyboardInput {
-                    state: ElementState::Pressed,
-                    virtual_keycode: Some(VirtualKeyCode::Space),
-                    ..
-                },
-            ..
-        } = event
-        {
-            self.graphic.colored = !self.graphic.colored;
-            return true;
-        }
+    pub fn input(&mut self, _event: &WindowEvent) -> bool {
         false
     }
 
