@@ -1,4 +1,6 @@
-#![allow(unused)]
+// This file contains the code that make the windows working and interacting
+// with the GPU.
+
 use winit::window::Window;
 
 pub struct WindowBundle {

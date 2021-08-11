@@ -1,3 +1,5 @@
+// This file contain the pipeline stuff for the graphic part of a program
+
 use super::*;
 
 pub struct RenderPipelineBundle {

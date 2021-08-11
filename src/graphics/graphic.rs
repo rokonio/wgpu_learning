@@ -1,3 +1,5 @@
+// This file contain the graphic stuff for a program
+
 use super::*;
 use winit::window::Window;
 

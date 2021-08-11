@@ -1,3 +1,5 @@
+// This file contains the logical part of an application
+
 use super::graphics;
 use futures::executor::block_on;
 use std::time::Instant;
