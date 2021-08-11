@@ -1,10 +1,18 @@
 // This file contains the logical part of an application
 
 use super::graphics;
+use super::graphics::Vertex;
 use futures::executor::block_on;
 use std::time::Instant;
 use winit::event::*;
 use winit::window::Window;
+
+#[rustfmt::skip]
+const VERTICES: &[Vertex] = &[
+    Vertex { position: [0.0, 0.5, 0.0], color: [1.0, 0.0, 0.0] },
+    Vertex { position: [-0.5, -0.5, 0.0], color: [0.0, 1.0, 0.0] },
+    Vertex { position: [0.5, -0.5, 0.0], color: [0.0, 0.0, 1.0] },
+];
 
 pub struct App {
     pub graphic: graphics::GraphicBundle,
@@ -13,7 +21,7 @@ pub struct App {
 
 impl App {
     pub fn new(window: &Window) -> Self {
-        let graphic = block_on(graphics::GraphicBundle::new(&window));
+        let graphic = block_on(graphics::GraphicBundle::new(&window, VERTICES));
         Self {
             graphic,
             last_update: Instant::now(),

@@ -26,7 +26,7 @@ impl RenderPipelineBundle {
         let vertex = wgpu::VertexState {
             module: &shader,
             entry_point: "main",
-            buffers: &[],
+            buffers: &[Vertex::desc()],
         };
         let fragment = wgpu::FragmentState {
             module: &shader,
