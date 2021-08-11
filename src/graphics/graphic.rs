@@ -7,18 +7,29 @@ pub struct GraphicBundle {
     pub window_bundle: WindowBundle,
     pub pipeline_bundle: RenderPipelineBundle,
     pub vertex_bundle: VertexBundle,
+    pub vertex_bundle2: VertexBundle,
+    pub vertex1: bool,
 }
 
 impl GraphicBundle {
-    pub async fn new(window: &Window, vertices: &[Vertex], indices: &[u16]) -> Self {
+    pub async fn new(
+        window: &Window,
+        vertices: &[Vertex],
+        indices: &[u16],
+        vertices2: &[Vertex],
+        indices2: &[u16],
+    ) -> Self {
         let window_bundle = WindowBundle::new(&window).await;
         let pipeline_bundle =
             RenderPipelineBundle::new(&window_bundle, include_str!("../shaders/shader.wgsl"));
         let vertex_bundle = VertexBundle::new(&window_bundle, vertices, indices);
+        let vertex_bundle2 = VertexBundle::new(&window_bundle, vertices2, indices2);
         Self {
             window_bundle,
             pipeline_bundle,
             vertex_bundle,
+            vertex_bundle2,
+            vertex1: true,
         }
     }
 
@@ -54,7 +65,11 @@ impl GraphicBundle {
             }],
             depth_stencil_attachment: None,
         });
-        let vert = &self.vertex_bundle;
+        let vert = if self.vertex1 {
+            &self.vertex_bundle
+        } else {
+            &self.vertex_bundle2
+        };
         render_pass.set_pipeline(&self.pipeline_bundle.render_pipeline);
         render_pass.set_vertex_buffer(0, vert.vertex_buffer.slice(..));
         render_pass.set_index_buffer(vert.index_buffer.slice(..), wgpu::IndexFormat::Uint16);
