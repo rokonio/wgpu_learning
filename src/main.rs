@@ -22,8 +22,8 @@ fn main() {
         } if window_id == window.id() => {
             if !app.input(event) {
                 match event {
-                    WindowEvent::CloseRequested => *control_flow = ControlFlow::Exit,
-                    WindowEvent::KeyboardInput {
+                    WindowEvent::CloseRequested
+                    | WindowEvent::KeyboardInput {
                         input:
                             KeyboardInput {
                                 state: ElementState::Pressed,

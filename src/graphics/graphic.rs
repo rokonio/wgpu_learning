@@ -3,16 +3,16 @@ use winit::window::Window;
 
 pub struct GraphicBundle {
     pub window_bundle: WindowBundle,
-    pub render_pipeline: RenderPipelineBundle,
+    pub render_pipeline_bundle: RenderPipelineBundle,
 }
 
 impl GraphicBundle {
     pub async fn new(window: &Window) -> Self {
         let window_bundle = WindowBundle::new(&window).await;
-        let render_pipeline = RenderPipelineBundle::new(&window_bundle);
+        let render_pipeline_bundle = RenderPipelineBundle::new(&window_bundle);
         Self {
             window_bundle,
-            render_pipeline,
+            render_pipeline_bundle,
         }
     }
 
@@ -31,7 +31,7 @@ impl GraphicBundle {
             });
 
         // Contains all the method used for drawing
-        let render_pass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
+        let mut render_pass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
             label: Some("Render Pass"),
             color_attachments: &[wgpu::RenderPassColorAttachment {
                 view: &frame.view,
@@ -48,6 +48,8 @@ impl GraphicBundle {
             }],
             depth_stencil_attachment: None,
         });
+        render_pass.set_pipeline(&self.render_pipeline_bundle.render_pipeline);
+        render_pass.draw(0..3, 0..1);
 
         drop(render_pass);
         win.queue.submit(std::iter::once(encoder.finish()));
