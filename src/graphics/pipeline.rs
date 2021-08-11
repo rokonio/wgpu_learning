@@ -5,10 +5,10 @@ pub struct RenderPipelineBundle {
 }
 
 impl RenderPipelineBundle {
-    pub fn new(window_bundle: &WindowBundle) -> Self {
+    pub fn new(window_bundle: &WindowBundle, shader_src: &str) -> Self {
         let shader_desc = wgpu::ShaderModuleDescriptor {
             label: Some("Shaders"),
-            source: wgpu::ShaderSource::Wgsl(include_str!("../shaders/shader.wgsl").into()),
+            source: wgpu::ShaderSource::Wgsl(shader_src.into()),
             flags: wgpu::ShaderFlags::all(),
         };
         let pipeline_layout_desc = wgpu::PipelineLayoutDescriptor {
