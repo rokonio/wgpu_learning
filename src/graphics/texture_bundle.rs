@@ -1,19 +1,28 @@
 use super::*;
+use anyhow::*;
+use image::GenericImageView;
 
-pub struct TextureBundle {
-    pub diffuse_bind_group: wgpu::BindGroup,
-    pub bind_group_layout: wgpu::BindGroupLayout,
+pub struct Texture {
+    pub texture: wgpu::Texture,
+    pub view: wgpu::TextureView,
+    pub sampler: wgpu::Sampler,
 }
 
-impl TextureBundle {
-    pub fn new(window_bundle: &WindowBundle, diffuse_bytes: &[u8]) -> Self {
-        let diffuse_image = image::load_from_memory(diffuse_bytes).unwrap();
-        let diffuse_rgba = diffuse_image.as_rgba8().unwrap();
+impl Texture {
+    pub fn from_bytes(window_bundle: &WindowBundle, bytes: &[u8], label: &str) -> Result<Self> {
+        let img = image::load_from_memory(bytes)?;
+        Self::from_image(window_bundle, &img, Some(label))
+    }
 
-        use image::GenericImageView;
-        let dimensions = diffuse_image.dimensions();
+    pub fn from_image(
+        window_bundle: &WindowBundle,
+        img: &image::DynamicImage,
+        label: Option<&str>,
+    ) -> Result<Self> {
+        let rgba = img.as_rgba8().unwrap();
+        let dimensions = img.dimensions();
 
-        let texture_size = wgpu::Extent3d {
+        let size = wgpu::Extent3d {
             width: dimensions.0,
             height: dimensions.1,
             depth_or_array_layers: 1,
@@ -21,30 +30,30 @@ impl TextureBundle {
 
         // Create an empty texture
         let texture_desc = wgpu::TextureDescriptor {
-            size: texture_size,
+            size,
             mip_level_count: 1,
             sample_count: 1,
             dimension: wgpu::TextureDimension::D2,
             format: wgpu::TextureFormat::Rgba8UnormSrgb,
             usage: wgpu::TextureUsage::SAMPLED | wgpu::TextureUsage::COPY_DST,
-            label: Some("diffuse_texture"),
+            label,
         };
-        let diffuse_texture = window_bundle.device.create_texture(&texture_desc);
+        let texture = window_bundle.device.create_texture(&texture_desc);
 
         // Upload data to the texture
         window_bundle.queue.write_texture(
             wgpu::ImageCopyTexture {
-                texture: &diffuse_texture,
+                texture: &texture,
                 mip_level: 0,
                 origin: wgpu::Origin3d::ZERO,
             },
-            diffuse_rgba,
+            rgba,
             wgpu::ImageDataLayout {
                 offset: 0,
                 bytes_per_row: std::num::NonZeroU32::new(4 * dimensions.0),
                 rows_per_image: std::num::NonZeroU32::new(dimensions.1),
             },
-            texture_size,
+            size,
         );
 
         let sampler_desc = wgpu::SamplerDescriptor {
@@ -57,9 +66,26 @@ impl TextureBundle {
             ..Default::default()
         };
 
-        let diffuse_texture_view =
-            diffuse_texture.create_view(&wgpu::TextureViewDescriptor::default());
-        let diffuse_sampler = window_bundle.device.create_sampler(&sampler_desc);
+        let view = texture.create_view(&wgpu::TextureViewDescriptor::default());
+        let sampler = window_bundle.device.create_sampler(&sampler_desc);
+        Ok(Self {
+            texture,
+            view,
+            sampler,
+        })
+    }
+}
+
+pub struct TextureBundle {
+    pub texture: Texture,
+    pub diffuse_bind_group: wgpu::BindGroup,
+    pub bind_group_layout: wgpu::BindGroupLayout,
+}
+
+impl TextureBundle {
+    pub fn new(window_bundle: &WindowBundle, diffuse_bytes: &[u8]) -> Self {
+        let diffuse_texture =
+            Texture::from_bytes(&window_bundle, diffuse_bytes, "happy_tree.png").unwrap();
 
         let texture_bind_group_layout =
             window_bundle
@@ -88,6 +114,7 @@ impl TextureBundle {
                     ],
                     label: Some("texture_bind_group_layout"),
                 });
+
         let diffuse_bind_group =
             window_bundle
                 .device
@@ -96,16 +123,17 @@ impl TextureBundle {
                     entries: &[
                         wgpu::BindGroupEntry {
                             binding: 0,
-                            resource: wgpu::BindingResource::TextureView(&diffuse_texture_view),
+                            resource: wgpu::BindingResource::TextureView(&diffuse_texture.view),
                         },
                         wgpu::BindGroupEntry {
                             binding: 1,
-                            resource: wgpu::BindingResource::Sampler(&diffuse_sampler),
+                            resource: wgpu::BindingResource::Sampler(&diffuse_texture.sampler),
                         },
                     ],
                     label: Some("diffuse_bind_group"),
                 });
         Self {
+            texture: diffuse_texture,
             diffuse_bind_group,
             bind_group_layout: texture_bind_group_layout,
         }

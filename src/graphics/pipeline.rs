@@ -9,8 +9,8 @@ pub struct RenderPipelineBundle {
 impl RenderPipelineBundle {
     pub fn new(
         window_bundle: &WindowBundle,
+        texture_bundle: &TextureBundle,
         shader_src: &str,
-        vertex_bundles: &[&VertexBundle],
     ) -> Self {
         let shader_desc = wgpu::ShaderModuleDescriptor {
             label: Some("Shaders"),
@@ -18,17 +18,9 @@ impl RenderPipelineBundle {
             flags: wgpu::ShaderFlags::all(),
         };
 
-        let mut bind_group_layouts = Vec::new();
-
-        for bundle in vertex_bundles.iter() {
-            bind_group_layouts.push(&bundle.texture_bundle.bind_group_layout);
-        }
-
-        let bind_group_layouts = &bind_group_layouts[..];
-
         let pipeline_layout_desc = wgpu::PipelineLayoutDescriptor {
             label: Some("Render Pipeline Layout"),
-            bind_group_layouts,
+            bind_group_layouts: &[&texture_bundle.bind_group_layout],
             push_constant_ranges: &[],
         };
 

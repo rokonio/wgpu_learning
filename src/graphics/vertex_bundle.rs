@@ -13,17 +13,10 @@ pub struct VertexBundle {
     pub index_buffer: wgpu::Buffer,
     pub num_vertices: u32,
     pub num_indices: u32,
-    pub texture_bundle: TextureBundle,
 }
 
 impl VertexBundle {
-    pub fn new(
-        window_bundle: &WindowBundle,
-        vertices: &[Vertex],
-        indices: &[u16],
-        texture_bytes: &[u8],
-    ) -> Self {
-        let texture_bundle = TextureBundle::new(&window_bundle, texture_bytes);
+    pub fn new(window_bundle: &WindowBundle, vertices: &[Vertex], indices: &[u16]) -> Self {
         let vertex_buffer =
             window_bundle
                 .device
@@ -45,7 +38,6 @@ impl VertexBundle {
             index_buffer,
             num_vertices: vertices.len() as u32,
             num_indices: indices.len() as u32,
-            texture_bundle,
         }
     }
 }
