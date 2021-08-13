@@ -9,7 +9,7 @@ pub struct GraphicBundle {
     pub pipeline_bundle: RenderPipelineBundle,
     pub vertex_bundle: VertexBundle,
     pub texture_bundle: TextureBundle,
-    pub uniforms_bundle: UniformsBundle,
+    pub uniform_bundle: UniformBundle,
 }
 
 impl GraphicBundle {
@@ -21,12 +21,14 @@ impl GraphicBundle {
             include_bytes!("../../assets/happy-tree.png"),
         );
         let camera = Camera::default(&window_bundle);
-        let uniforms_bundle = UniformsBundle::new(&window_bundle, &camera);
+        let uniform_bundle = UniformBundle::new(&window_bundle, &camera);
 
         let pipeline_bundle = RenderPipelineBundle::new(
             &window_bundle,
-            &texture_bundle,
-            &uniforms_bundle,
+            &[
+                &texture_bundle.bind_group_layout,
+                &uniform_bundle.uniform_bind_group_layout,
+            ],
             include_str!("../shaders/shader.wgsl"),
         );
         Self {
@@ -34,7 +36,7 @@ impl GraphicBundle {
             pipeline_bundle,
             vertex_bundle,
             texture_bundle,
-            uniforms_bundle,
+            uniform_bundle,
         }
     }
 
@@ -73,7 +75,7 @@ impl GraphicBundle {
         let vert = &self.vertex_bundle;
         render_pass.set_pipeline(&self.pipeline_bundle.render_pipeline);
         render_pass.set_bind_group(0, &self.texture_bundle.diffuse_bind_group, &[]);
-        render_pass.set_bind_group(1, &self.uniforms_bundle.uniform_bind_group, &[]);
+        render_pass.set_bind_group(1, &self.uniform_bundle.uniform_bind_group, &[]);
         render_pass.set_vertex_buffer(0, vert.vertex_buffer.slice(..));
         render_pass.set_index_buffer(vert.index_buffer.slice(..), wgpu::IndexFormat::Uint16);
         render_pass.draw_indexed(0..vert.num_indices, 0, 0..1);
