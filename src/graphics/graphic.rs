@@ -90,4 +90,12 @@ impl GraphicBundle {
     pub fn size(&self) -> winit::dpi::PhysicalSize<u32> {
         self.window_bundle.size
     }
+    pub fn update(&mut self, camera: &Camera) {
+        self.uniform_bundle.uniforms.update_view_proj(camera);
+        self.window_bundle.queue.write_buffer(
+            &self.uniform_bundle.uniform_buffer,
+            0,
+            bytemuck::cast_slice(&[self.uniform_bundle.uniforms]),
+        );
+    }
 }

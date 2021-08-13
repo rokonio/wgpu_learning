@@ -2,6 +2,8 @@
 
 use super::graphics;
 use super::graphics::Vertex;
+use crate::camera::Camera;
+use crate::camera::CameraController;
 use futures::executor::block_on;
 use std::time::Instant;
 use winit::event::*;
@@ -27,14 +29,18 @@ const INDICES: &[u16] = &[
 pub struct App {
     pub graphic: graphics::GraphicBundle,
     pub last_update: Instant,
+    pub camera: Camera,
+    pub camera_controller: CameraController,
 }
 
 impl App {
     pub fn new(window: &Window) -> Self {
         let graphic = block_on(graphics::GraphicBundle::new(&window, VERTICES, INDICES));
         Self {
+            camera: Camera::default(&graphic.window_bundle),
             graphic,
             last_update: Instant::now(),
+            camera_controller: CameraController::new(0.2),
         }
     }
 
@@ -42,13 +48,15 @@ impl App {
         self.graphic.resize(new_size)
     }
 
-    pub fn input(&mut self, _event: &WindowEvent) -> bool {
-        false
+    pub fn input(&mut self, event: &WindowEvent) -> bool {
+        self.camera_controller.process_events(event)
     }
 
     pub fn update(&mut self) {
         let _since_last_update = self.last_update.elapsed();
         // Do stuff...
+        self.camera_controller.update_camera(&mut self.camera);
+        self.graphic.update(&self.camera);
 
         self.last_update = Instant::now();
     }
