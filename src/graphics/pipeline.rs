@@ -10,6 +10,7 @@ impl RenderPipelineBundle {
     pub fn new(
         window_bundle: &WindowBundle,
         texture_bundle: &TextureBundle,
+        uniforms_bundle: &UniformsBundle,
         shader_src: &str,
     ) -> Self {
         let shader_desc = wgpu::ShaderModuleDescriptor {
@@ -20,7 +21,10 @@ impl RenderPipelineBundle {
 
         let pipeline_layout_desc = wgpu::PipelineLayoutDescriptor {
             label: Some("Render Pipeline Layout"),
-            bind_group_layouts: &[&texture_bundle.bind_group_layout],
+            bind_group_layouts: &[
+                &texture_bundle.bind_group_layout,
+                &uniforms_bundle.uniform_bind_group_layout,
+            ],
             push_constant_ranges: &[],
         };
 
