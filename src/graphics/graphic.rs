@@ -2,6 +2,8 @@
 
 use super::*;
 use crate::camera::Camera;
+use nalgebra_glm as glm;
+use std::time;
 use winit::window::Window;
 
 pub struct GraphicBundle {
@@ -90,8 +92,10 @@ impl GraphicBundle {
     pub fn size(&self) -> winit::dpi::PhysicalSize<u32> {
         self.window_bundle.size
     }
-    pub fn update(&mut self, camera: &Camera) {
-        self.uniform_bundle.uniforms.update_view_proj(camera);
+    pub fn update(&mut self, camera: &Camera, dt: time::Duration) {
+        self.uniform_bundle
+            .uniforms
+            .update_view_proj(camera, &glm::rotate_z(&glm::identity(), dt.as_secs_f32()));
         self.window_bundle.queue.write_buffer(
             &self.uniform_bundle.uniform_buffer,
             0,

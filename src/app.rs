@@ -53,12 +53,10 @@ impl App {
     }
 
     pub fn update(&mut self) {
-        let _since_last_update = self.last_update.elapsed();
+        let since_last_update = self.last_update.elapsed();
         // Do stuff...
         self.camera_controller.update_camera(&mut self.camera);
-        self.graphic.update(&self.camera);
-
-        self.last_update = Instant::now();
+        self.graphic.update(&self.camera, since_last_update);
     }
 
     pub fn render(&mut self) -> Result<(), wgpu::SwapChainError> {
