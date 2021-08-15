@@ -29,6 +29,7 @@ const INDICES: &[u16] = &[
 pub struct App {
     pub graphic: graphics::GraphicBundle,
     pub last_update: Instant,
+    pub from_start: Instant,
     pub camera: Camera,
     pub camera_controller: CameraController,
 }
@@ -39,6 +40,7 @@ impl App {
         Self {
             camera: Camera::default(&graphic.window_bundle),
             graphic,
+            from_start: Instant::now(),
             last_update: Instant::now(),
             camera_controller: CameraController::new(0.2),
         }
@@ -57,6 +59,7 @@ impl App {
         // Do stuff...
         self.camera_controller.update_camera(&mut self.camera);
         self.graphic.update(&self.camera, since_last_update);
+        self.last_update = Instant::now();
     }
 
     pub fn render(&mut self) -> Result<(), wgpu::SwapChainError> {

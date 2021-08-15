@@ -21,8 +21,8 @@ impl Uniforms {
         }
     }
 
-    pub fn update_view_proj(&mut self, camera: &Camera, matrix: &glm::Mat4) {
-        self.view_proj = (camera.build_view_projection_matrix() * matrix).into();
+    pub fn update_view_proj(&mut self, camera: &Camera) {
+        self.view_proj = camera.build_view_projection_matrix().into();
     }
 }
 
@@ -43,7 +43,7 @@ impl UniformBundle {
             BufferUsage, ShaderStage,
         };
         let mut uniforms = Uniforms::new();
-        uniforms.update_view_proj(camera, &glm::identity());
+        uniforms.update_view_proj(camera);
 
         let uniform_slice = &[uniforms];
         let buffer_desc = BufferInitDescriptor {
